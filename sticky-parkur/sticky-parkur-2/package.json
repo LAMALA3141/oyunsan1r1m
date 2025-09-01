@@ -1,0 +1,33 @@
+{
+  "name": "sticky-parkur",
+  "version": "1.0.0",
+  "description": "A platform game with an admin panel for managing access codes and game settings.",
+  "main": "src/server/index.ts",
+  "scripts": {
+    "start": "ts-node src/server/index.ts",
+    "seed": "ts-node scripts/seed-access-codes.ts",
+    "test": "jest"
+  },
+  "dependencies": {
+    "express": "^4.17.1",
+    "mongoose": "^5.10.9",
+    "cors": "^2.8.5",
+    "dotenv": "^8.2.0"
+  },
+  "devDependencies": {
+    "typescript": "^4.1.3",
+    "ts-node": "^9.1.1",
+    "jest": "^26.6.3",
+    "@types/jest": "^26.0.0",
+    "@types/node": "^14.14.31"
+  },
+  "keywords": [
+    "game",
+    "admin",
+    "platform",
+    "javascript",
+    "typescript"
+  ],
+  "author": "Your Name",
+  "license": "MIT"
+}

@@ -1,0 +1,744 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Platform Oyunu</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+        }
+        h1 {
+            color: white;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+            margin-bottom: 20px;
+        }
+        
+        #gameCanvas {
+            border: 3px solid #333;
+            border-radius: 10px;
+            box-shadow: 0 0 20px rgba(0,0,0,0.3);
+            background: linear-gradient(to bottom, #87CEEB, #98FB98);
+        }
+        
+        .controls {
+            margin-top: 20px;
+            color: white;
+            text-align: center;
+            background: rgba(0,0,0,0.3);
+            padding: 15px;
+            border-radius: 10px;
+        }
+        
+        .controls h3 {
+            margin: 0 0 10px 0;
+        }
+        
+        .controls p {
+            margin: 5px 0;
+            font-size: 14px;
+        }
+        
+        .fullscreen-btn {
+            background: linear-gradient(45deg, #FF6B6B, #4ECDC4);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            font-size: 16px;
+            font-weight: bold;
+            border-radius: 25px;
+            cursor: pointer;
+            margin: 10px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            transition: all 0.3s ease;
+        }
+        
+        .fullscreen-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+        }
+        
+        .fullscreen-btn:active {
+            transform: translateY(0);
+        }
+        
+        .menu-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.65);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+        }
+        
+        .menu-panel {
+            background: rgba(0,0,0,0.45);
+            padding: 36px 48px;
+            border-radius: 16px;
+            text-align: center;
+            color: white;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.35);
+            max-width: 680px;
+            width: calc(100% - 48px);
+        }
+        
+        .menu-panel h2 {
+            margin: 0 0 18px 0;
+            font-size: 36px;
+        }
+
+        .menu-btn {
+            background: linear-gradient(45deg, #4ECDC4, #45B7D1);
+            color: white;
+            border: none;
+            padding: 16px 28px;
+            font-size: 20px;
+            font-weight: bold;
+            border-radius: 28px;
+            cursor: pointer;
+            margin: 0;
+            box-shadow: 0 6px 18px rgba(0,0,0,0.25);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .menu-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(0,0,0,0.35);
+        }
+
+        /* Icon-style main menu layout */
+        .menu-icon-row { display: flex; align-items: center; justify-content: center; gap: 28px; flex-wrap: wrap; }
+        .icon-wrap { display: flex; flex-direction: column; align-items: center; gap: 8px; }
+        .icon-label { color: #fff; font-weight: bold; }
+        .icon-btn {
+            width: 120px; height: 120px;
+            border-radius: 50%;
+            background: #16a34a; /* green */
+            border: 6px solid #facc15; /* yellow */
+            display: flex; align-items: center; justify-content: center;
+            cursor: pointer;
+            box-shadow: 0 8px 22px rgba(0,0,0,0.35);
+            transition: transform .15s ease, box-shadow .15s ease;
+            color: #fff;
+            font-size: 42px;
+            user-select: none;
+        }
+        .icon-btn:hover { transform: translateY(-3px) scale(1.03); box-shadow: 0 10px 28px rgba(0,0,0,0.45); }
+        .icon-btn:active { transform: translateY(0) scale(0.98); }
+
+        /* Play (triangle) button */
+        .play-btn {
+            width: 140px; height: 140px;
+            border-radius: 20px;
+            background: transparent;
+            border: none;
+            padding: 0;
+            cursor: pointer;
+        }
+        .play-svg { width: 140px; height: 140px; display: block; }
+
+        .subpanel {
+            background: rgba(0,0,0,0.45);
+            padding: 28px 36px;
+            border-radius: 14px;
+            color: white;
+            width: min(760px, calc(100% - 48px));
+            display: none;
+        }
+
+        .subpanel h3 { margin-top: 0; font-size: 24px; }
+        .subpanel p { margin: 8px 0; line-height: 1.5; }
+        .subpanel .row { display: flex; gap: 12px; flex-wrap: wrap; }
+        .subpanel label { display: block; margin: 10px 0 6px; font-weight: bold; }
+        .subpanel input[type="number"], .subpanel select { padding: 8px 10px; border-radius: 8px; border: 1px solid #888; width: 120px; }
+        .subpanel .actions { margin-top: 16px; display: flex; gap: 10px; flex-wrap: wrap; }
+
+        .sound-embed { margin-top: 18px; }
+        .sound-embed iframe { border: 0; border-radius: 12px; width: 100%; height: 180px; }
+    </style>
+</head>
+<body>
+    <h1>Sticky Parkur</h1>
+    <canvas id="gameCanvas" width="800" height="600"></canvas>
+    
+    <button class="fullscreen-btn" onclick="toggleFullscreen()">🖥️ Tam Ekran</button>
+    
+    <div id="menuOverlay" class="menu-overlay">
+        <div class="menu-panel" id="mainMenuPanel">
+            <h2>Sticky Parkur</h2>
+            <div style="margin-bottom:12px; color: #fff; font-weight: bold; display:flex; gap:18px; justify-content:center;">
+                <div>P1 Para: <span id="menuP1Coins">0</span></div>
+                <div>P2 Para: <span id="menuP2Coins">0</span></div>
+            </div>
+            <div class="menu-icon-row">
+                <div class="icon-wrap">
+                    <button class="icon-btn" onclick="openHowTo()">?</button>
+                    <div class="icon-label">Nasıl Oynanır</div>
+                </div>
+                <button class="play-btn" onclick="startFromMenu()" aria-label="Oyunu Başlat">
+                    <svg class="play-svg" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+                        <defs>
+                            <linearGradient id="g" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" stop-color="#16a34a"/>
+                                <stop offset="100%" stop-color="#22c55e"/>
+                            </linearGradient>
+                        </defs>
+                        <rect x="10" y="10" rx="28" ry="28" width="180" height="180" fill="url(#g)" stroke="#facc15" stroke-width="10"/>
+                        <polygon points="85,65 85,135 140,100" fill="#fff"/>
+                    </svg>
+                </button>
+                <div class="icon-wrap">
+                    <button class="icon-btn" onclick="openSettings()">⚙️</button>
+                    <div class="icon-label">Ayarlar</div>
+                </div>
+                <div class="icon-wrap">
+                    <button class="icon-btn" onclick="openCharacters()">👤</button>
+                    <div class="icon-label">Karakterler</div>
+                </div>
+            </div>
+            <div class="sound-embed" style="display:none;">
+                <iframe id="scPlayer" allow="autoplay" scrolling="no" frameborder="no" src="https://w.soundcloud.com/player/?url=https%3A//soundcloud.com/relaxedpianomusic/quietness-stress-relief-music%3Fin%3Drelaxedpianomusic/sets/calm-music-guru-peaceful-piano%26si%3D8f99985c5f234e62a6dcb08780502172%26utm_source%3Dclipboard%26utm_medium%3Dtext%26utm_campaign%3Dsocial_sharing&color=%23facc15&auto_play=true&hide_related=true&show_comments=false&show_user=false&show_reposts=false&show_teaser=false&visual=false"></iframe>
+            </div>
+        </div>
+
+        <div class="subpanel" id="howToPanel">
+            <h3>Nasıl Oynanır</h3>
+            <p><strong>Karakter 1 (Mavi - Abdulrezzak)</strong>: A/D (hareket), W (zıplama), E (kol uzatma)</p>
+            <p><strong>Karakter 2 (Kırmızı - Mahmut Abi)</strong>: Sol/Sağ ok (hareket), Yukarı ok (zıplama). Güçlü tekme: L</p>
+            <div class="actions">
+                <button class="menu-btn" onclick="backToMenu()">⬅️ Geri</button>
+                <button class="menu-btn" onclick="startFromMenu()">🎮 Başlat</button>
+            </div>
+        </div>
+
+        <div class="subpanel" id="settingsPanel">
+            <h3>Ayarlar</h3>
+            <div class="row">
+                <div>
+                    <label for="startLevel">Başlangıç Bölümü</label>
+                    <input id="startLevel" type="number" min="1" max="15" value="1" />
+                </div>
+                <div>
+                    <label for="startFullscreen">Tam ekranda başla</label>
+                    <select id="startFullscreen">
+                        <option value="no">Hayır</option>
+                        <option value="yes">Evet</option>
+                    </select>
+                </div>
+                <div style="min-width:220px;">
+                    <label for="volumePercent">Ses seviyesi</label>
+                    <input id="volumePercent" type="range" min="0" max="100" value="60" />
+                    <span id="volumeValue" style="margin-left:6px;">60%</span>
+                </div>
+            </div>
+            <div class="actions">
+                <button class="menu-btn" onclick="saveSettings()">💾 Kaydet</button>
+                <button class="menu-btn" onclick="backToMenu()">⬅️ Geri</button>
+            </div>
+        </div>
+
+        <div class="subpanel" id="charactersPanel">
+            <h3>Karakterler ve Mağaza</h3>
+            <div class="row" style="justify-content: space-between; align-items: center;">
+                <div>
+                    <p><strong>Oyuncu 1 Para:</strong> <span id="p1Coins">0</span></p>
+                    <p><strong>Seçili:</strong> <span id="p1Selection">Abdulrezzak</span></p>
+                </div>
+                <div>
+                    <p><strong>Oyuncu 2 Para:</strong> <span id="p2Coins">0</span></p>
+                    <p><strong>Seçili:</strong> <span id="p2Selection">Mahmut Abi</span></p>
+                </div>
+            </div>
+            <div class="row" style="align-items: stretch;">
+                <div id="charactersList" style="flex:1; min-width:260px;"></div>
+                <div id="characterDetail" style="flex:1; min-width:260px; background: rgba(0,0,0,0.25); border-radius: 10px; padding: 12px;">
+                    <h4 id="charName">Seçili Karakter</h4>
+                    <div id="charColor" style="width: 60px; height: 60px; border-radius: 50%; margin-bottom: 8px; border: 3px solid #fff;"></div>
+                    <p id="charPrice">Fiyat: 0</p>
+                    <div class="actions">
+                        <button class="menu-btn" id="btnP1Action">P1</button>
+                        <button class="menu-btn" id="btnP2Action">P2</button>
+                    </div>
+                </div>
+            </div>
+            <div class="actions">
+                <button class="menu-btn" onclick="backToMenu()">⬅️ Geri</button>
+                <button class="menu-btn" onclick="startFromMenu()">🎮 Başlat</button>
+            </div>
+        </div>
+        <!-- Admin prompt & panel (gösterimi menü overlay içinde) -->
+        <div id="adminPromptBar" style="position:absolute;top:8px;left:50%;transform:translateX(-50%);display:none;z-index:10000;padding:8px 10px;background:rgba(0,0,0,0.85);color:#fff;border-radius:8px;gap:8px;align-items:center;">
+            <span style="margin-right:8px">Erişim Kodu Girin:</span>
+            <input id="adminAccessInput" placeholder="Kod girin ve Enter" style="padding:6px 8px;border-radius:6px;border:1px solid #666;background:#111;color:#fff;" />
+            <button id="adminAccessOk" class="menu-btn" style="padding:6px 8px;font-size:13px;margin-left:8px;">Tamam</button>
+            <button id="adminAccessCancel" class="menu-btn" style="padding:6px 8px;font-size:13px;margin-left:6px;background:#c0392b;">İptal</button>
+        </div>
+
+        <div id="adminPanel" style="position:absolute;right:12px;top:12px;display:none;z-index:10000;width:300px;background:rgba(0,0,0,0.85);color:#fff;padding:12px;border-radius:10px;">
+            <div style="font-weight:bold;margin-bottom:8px">Admin Paneli</div>
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;"><label style="margin:0">Sonsuz Para</label><input id="chkInfiniteMoney" type="checkbox"/></div>
+            <div style="margin-bottom:8px;"><label style="display:block">P1 Para</label><input id="adminP1Coins" type="number" value="0" style="width:100%;padding:6px;border-radius:6px;border:1px solid #666;"/></div>
+            <div style="margin-bottom:8px;"><label style="display:block">P2 Para</label><input id="adminP2Coins" type="number" value="0" style="width:100%;padding:6px;border-radius:6px;border:1px solid #666;"/></div>
+            <div style="display:flex;gap:8px;"><button id="applyAdmin" class="menu-btn" style="flex:1;">Uygula</button><button id="closeAdmin" class="menu-btn" style="flex:1;background:#555;">Kapat</button></div>
+        </div>
+    </div>
+    
+    <div class="controls">
+        <h3>Kontroller:</h3>
+            <p><strong>Karakter 1:</strong> A/D (hareket), W (zıplama), E (kol uzatma)</p>
+            <p><strong>Karakter 2:</strong> Sol/Sağ ok tuşları (hareket), Yukarı ok (zıplama)</p>
+    </div>
+
+    <script src="game.js"></script>
+    <script src="https://w.soundcloud.com/player/api.js"></script>
+    <script>
+        // SoundCloud parça linkleri
+        const MENU_TRACK_URL = 'https://soundcloud.com/relaxedpianomusic/quietness-stress-relief-music?in=relaxedpianomusic/sets/calm-music-guru-peaceful-piano&si=8f99985c5f234e62a6dcb08780502172&utm_source=clipboard&utm_medium=text&utm_campaign=social_sharing';
+        const GAME_TRACK_URL = 'https://soundcloud.com/kronik_electro/furi-youre-mine-carpenter-brut?in=max-scott-553335611/sets/exciting-music-refined&si=590e6c712f4d40ce8f3b95dc73364efc&utm_source=clipboard&utm_medium=text&utm_campaign=social_sharing';
+        // Sayfa yüklendiğinde menü arkaplan demosunu başlat
+        document.addEventListener('DOMContentLoaded', function() {
+            if (window.startDemo) window.startDemo();
+            if (window.initStore) window.initStore();
+            // SoundCloud widget init
+            var iframe = document.getElementById('scPlayer');
+            if (window.SC && iframe) {
+                var widget = window.SC.Widget(iframe);
+                window.scWidget = widget;
+                var initialVol = (window.gameSettings && window.gameSettings.volumePercent) || 60;
+                // ortak ses ayarı fonksiyonu: widget ve Audio nesnelerini günceller, ayarı kaydeder
+                window.setMusicVolume = function(v) {
+                    var vol = parseInt(v, 10);
+                    if (!Number.isFinite(vol)) vol = 60;
+                    vol = Math.max(0, Math.min(100, vol));
+                    window.gameSettings = window.gameSettings || {};
+                    window.gameSettings.volumePercent = vol;
+                    try { localStorage.setItem('sticky_game_settings_v1', JSON.stringify(window.gameSettings)); } catch(e) {}
+                    if (window.scWidget && typeof window.scWidget.setVolume === 'function') {
+                        try { window.scWidget.setVolume(vol); } catch(e) {}
+                    }
+                    if (window.gameMusicAudio) {
+                        try { window.gameMusicAudio.volume = vol / 100; } catch(e) {}
+                    }
+                    var volElInner = document.getElementById('volumePercent');
+                    var volTxtInner = document.getElementById('volumeValue');
+                    if (volElInner) volElInner.value = String(vol);
+                    if (volTxtInner) volTxtInner.textContent = vol + '%';
+                };
+                var musicPlayAttempted = false;
+                function tryPlayMusic() {
+                    if (musicPlayAttempted) return;
+                    musicPlayAttempted = true;
+                    if (window.scWidget && window.scWidget.play) {
+                        try { window.scWidget.play(); } catch(e) { musicPlayAttempted = false; }
+                    }
+                }
+                // SC hazır olunca ses ve oynatma dene (menü müziği)
+                try {
+                    widget.bind(window.SC.Widget.Events.READY, function() {
+                        try { window.setMusicVolume(initialVol); } catch(e) {}
+                        // Menü parçasını yükle
+                        try { widget.load(MENU_TRACK_URL, { auto_play: true, visual: false, show_teaser: false, show_comments: false, hide_related: true, show_user: false, show_reposts: false, color: '#facc15' }); } catch(e) {}
+                        // Biraz gecikmeli ses uygula (garanti)
+                        setTimeout(function(){ try { window.setMusicVolume(initialVol); } catch(e) {} }, 300);
+                        tryPlayMusic();
+                    });
+                } catch(e) {}
+                // İlk kullanıcı etkileşiminde tekrar dene (autoplay kısıtına karşı)
+                var onceHandler = function() {
+                    tryPlayMusic();
+                    document.removeEventListener('pointerdown', onceHandler);
+                    document.removeEventListener('keydown', onceHandler);
+                };
+                document.addEventListener('pointerdown', onceHandler);
+                document.addEventListener('keydown', onceHandler);
+            }
+            // Volume live update
+            var volEl = document.getElementById('volumePercent');
+            var volTxt = document.getElementById('volumeValue');
+                if (volEl) {
+                volEl.addEventListener('input', function() {
+                    var v = parseInt(volEl.value || '60', 10);
+                    if (Number.isNaN(v)) v = 60;
+                    if (volTxt) volTxt.textContent = v + '%';
+                    if (window.setMusicVolume) {
+                        try { window.setMusicVolume(v); } catch(e) {}
+                    } else if (window.scWidget && window.scWidget.setVolume) {
+                        try { window.scWidget.setVolume(v); } catch(e) {}
+                    }
+                });
+            }
+        });
+        function toggleFullscreen() {
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen().catch(err => {
+                    console.log('Fullscreen hatası:', err);
+                });
+            } else {
+                document.exitFullscreen();
+            }
+        }
+        
+        // Fullscreen değişikliklerini dinle
+        document.addEventListener('fullscreenchange', handleFullscreenChange);
+        document.addEventListener('webkitfullscreenchange', handleFullscreenChange);
+        
+        function handleFullscreenChange() {
+            if (document.fullscreenElement || document.webkitFullscreenElement) {
+                // Fullscreen modunda - JavaScript ile stil değiştir
+                document.body.style.background = '#000';
+                document.body.style.padding = '0';
+                document.body.style.margin = '0';
+                document.body.style.width = '100vw';
+                document.body.style.height = '100vh';
+                document.body.style.display = 'flex';
+                document.body.style.justifyContent = 'center';
+                document.body.style.alignItems = 'center';
+                
+                // Elementleri gizle
+                document.querySelector('h1').style.display = 'none';
+                document.querySelector('.controls').style.display = 'none';
+                document.querySelector('.fullscreen-btn').style.display = 'none';
+                
+                // Canvas'ı tam ekran yap
+                canvas.style.border = 'none';
+                canvas.style.borderRadius = '0';
+                canvas.style.boxShadow = 'none';
+                canvas.style.width = '100vw';
+                canvas.style.height = '100vh';
+                canvas.style.maxWidth = '100vw';
+                canvas.style.maxHeight = '100vh';
+                
+                // Canvas boyutunu ayarla
+                canvas.width = window.innerWidth;
+                canvas.height = window.innerHeight;
+            } else {
+                // Normal modda - Stilleri geri al
+                document.body.style.background = '';
+                document.body.style.padding = '';
+                document.body.style.margin = '';
+                document.body.style.display = '';
+                document.body.style.justifyContent = '';
+                document.body.style.alignItems = '';
+                
+                // Elementleri göster
+                document.querySelector('h1').style.display = '';
+                document.querySelector('.controls').style.display = '';
+                document.querySelector('.fullscreen-btn').style.display = '';
+                
+                // Canvas stillerini geri al
+                canvas.style.border = '';
+                canvas.style.borderRadius = '';
+                canvas.style.boxShadow = '';
+                canvas.style.width = '';
+                canvas.style.height = '';
+                canvas.style.maxWidth = '';
+                canvas.style.maxHeight = '';
+                
+                // Canvas boyutunu geri al
+                canvas.width = 800;
+                canvas.height = 600;
+            }
+        }
+        
+        // ESC tuşu ile fullscreen'den çıkma
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape' && document.fullscreenElement) {
+                document.exitFullscreen();
+            }
+        });
+
+        // Güçlü tekme artık L tuşuyla tetikleniyor
+        function showPanel(panelId) {
+            var main = document.getElementById('mainMenuPanel');
+            var how = document.getElementById('howToPanel');
+            var setp = document.getElementById('settingsPanel');
+            if (main) main.style.display = panelId === 'main' ? '' : 'none';
+            if (how) how.style.display = panelId === 'how' ? 'block' : 'none';
+            if (setp) setp.style.display = panelId === 'settings' ? 'block' : 'none';
+            var chp = document.getElementById('charactersPanel');
+            if (chp) chp.style.display = panelId === 'characters' ? 'block' : 'none';
+        }
+
+        function openHowTo() { showPanel('how'); }
+        function openSettings() {
+            // Set UI from settings
+            var levelEl = document.getElementById('startLevel');
+            var fsEl = document.getElementById('startFullscreen');
+            var volEl = document.getElementById('volumePercent');
+            var volTxt = document.getElementById('volumeValue');
+            if (window.gameSettings) {
+                if (levelEl) levelEl.value = String(window.gameSettings.startLevel || 1);
+                if (fsEl) fsEl.value = window.gameSettings.startFullscreen ? 'yes' : 'no';
+                if (volEl) volEl.value = String(window.gameSettings.volumePercent || 60);
+                if (volTxt) volTxt.textContent = String(window.gameSettings.volumePercent || 60) + '%';
+            }
+            showPanel('settings');
+        }
+        function openCharacters() { showPanel('characters'); if (window.renderCharactersUI) window.renderCharactersUI(); }
+        function backToMenu() { showPanel('main'); }
+
+        // Basit ayarlar deposu (localStorage destekli)
+        window.gameSettings = (function(){
+            try {
+                var raw = localStorage.getItem('sticky_game_settings_v1');
+                if (raw) return JSON.parse(raw);
+            } catch(e) {}
+            return { startLevel: 1, startFullscreen: false, volumePercent: 60 };
+        })();
+
+        function saveSettings() {
+            var levelEl = document.getElementById('startLevel');
+            var fsEl = document.getElementById('startFullscreen');
+            var volEl = document.getElementById('volumePercent');
+            var startLevel = parseInt(levelEl && levelEl.value ? levelEl.value : '1', 10);
+            if (!Number.isFinite(startLevel)) startLevel = 1;
+            if (startLevel < 1) startLevel = 1;
+            if (startLevel > 15) startLevel = 15;
+            window.gameSettings.startLevel = startLevel;
+            window.gameSettings.startFullscreen = fsEl && fsEl.value === 'yes';
+            var vol = parseInt(volEl && volEl.value ? volEl.value : '60', 10);
+            if (!Number.isFinite(vol)) vol = 60;
+            if (vol < 0) vol = 0;
+            if (vol > 100) vol = 100;
+            window.gameSettings.volumePercent = vol;
+            if (window.setMusicVolume) {
+                try { window.setMusicVolume(vol); } catch(e) {}
+            } else if (window.scWidget && window.scWidget.setVolume) {
+                try { window.scWidget.setVolume(vol); } catch(e) {}
+            }
+            backToMenu();
+        }
+
+        function startFromMenu() {
+            var overlay = document.getElementById('menuOverlay');
+            if (overlay) overlay.style.display = 'none';
+            if (window.gameSettings && window.gameSettings.startFullscreen && !document.fullscreenElement) {
+                toggleFullscreen();
+            }
+            // Menünün sakin müziği yerine oyun müziğini yükle ve çal
+            if (window.scWidget && window.scWidget.load) {
+                try {
+                    var vol = (window.gameSettings && window.gameSettings.volumePercent) || 60;
+                    window.scWidget.load(GAME_TRACK_URL, {
+                        auto_play: true,
+                        show_teaser: false,
+                        show_comments: false,
+                        hide_related: true,
+                        show_user: false,
+                        show_reposts: false,
+                        visual: false,
+                        color: '#facc15'
+                    });
+                    setTimeout(function(){ try { if (window.setMusicVolume) window.setMusicVolume(vol); else if (window.scWidget && window.scWidget.setVolume) window.scWidget.setVolume(vol); } catch(e) {} }, 300);
+                } catch(e) {}
+            }
+            if (window.startGame) {
+                window.startGame();
+            }
+        }
+
+        // --- Admin / secret code handling (menu-overlay içi) ---
+        (function(){
+            var buf = '';
+            var maxLen = 30;
+            var overlay = document.getElementById('menuOverlay');
+            var promptBar = document.getElementById('adminPromptBar');
+            var inputEl = document.getElementById('adminAccessInput');
+
+            function isMenuVisible(){ if (!overlay) return false; return window.getComputedStyle(overlay).display !== 'none'; }
+            function showPrompt(){ if (promptBar){ promptBar.style.display = 'flex'; promptBar.setAttribute('aria-hidden','false'); inputEl.value=''; inputEl.focus(); } }
+            function hidePrompt(){ if (promptBar){ promptBar.style.display = 'none'; promptBar.setAttribute('aria-hidden','true'); } }
+            function openAdminPanel(){ var p=document.getElementById('adminPanel'); if(!p) return; p.style.display='block'; p.setAttribute('aria-hidden','false'); try{ var c=window._coins||{p1:0,p2:0}; document.getElementById('adminP1Coins').value = c.p1||0; document.getElementById('adminP2Coins').value = c.p2||0; document.getElementById('chkInfiniteMoney').checked = !!(window.cheats && window.cheats.infiniteMoney); }catch(e){} }
+            function closeAdminPanel(){ var p=document.getElementById('adminPanel'); if(!p) return; p.style.display='none'; p.setAttribute('aria-hidden','true'); }
+
+            function processCode(code){
+                if(code==='3131'){ window.cheats = window.cheats||{}; window.cheats.firstLevelBonus = true; alert('3131 aktif: 1. seviye için ekstra para.'); return; }
+                if(code==='3141'){ window.cheats = window.cheats||{}; window.cheats.infiniteMoney = true; alert('3141 aktif: sonsuz para. Admin açılıyor.'); openAdminPanel(); return; }
+            }
+
+            document.addEventListener('keydown', function(e){
+                try{
+                    if(!isMenuVisible()) return; // sadece menü açıkken dinle
+                    var k = e.key; if(!k) return; if(k.length===1) { buf += k.toLowerCase(); if(buf.length>maxLen) buf = buf.slice(-maxLen); }
+                    if(buf.endsWith('11')){ showPrompt(); buf=''; }
+                    else if(buf.endsWith('3131')){ processCode('3131'); buf=''; }
+                    else if(buf.endsWith('3141')){ processCode('3141'); buf=''; }
+                }catch(e){}
+            });
+
+            document.getElementById('adminAccessOk').addEventListener('click', function(){ var v=String(inputEl.value||'').trim(); hidePrompt(); if(!v) return; if(v==='3131' || v==='3141'){ processCode(v); return; } if(v==='admin' || v==='letmein'){ window.cheats = window.cheats||{}; window.cheats.infiniteMoney = true; openAdminPanel(); return; } alert('Geçersiz erişim kodu.'); });
+            document.getElementById('adminAccessCancel').addEventListener('click', hidePrompt);
+            inputEl.addEventListener('keydown', function(e){ if(e.key==='Enter') document.getElementById('adminAccessOk').click(); if(e.key==='Escape') hidePrompt(); });
+
+            document.getElementById('applyAdmin').addEventListener('click', function(){ var inf = document.getElementById('chkInfiniteMoney').checked; window.cheats = window.cheats||{}; window.cheats.infiniteMoney = !!inf; var p1 = parseInt(document.getElementById('adminP1Coins').value||'0',10)||0; var p2 = parseInt(document.getElementById('adminP2Coins').value||'0',10)||0; window._coins = window._coins||{p1:0,p2:0}; window._coins.p1 = p1; window._coins.p2 = p2; if(window.updateCharactersUI) try{ window.updateCharactersUI(); }catch(e){} alert('Admin ayarları uygulandı.'); });
+            document.getElementById('closeAdmin').addEventListener('click', closeAdminPanel);
+        })();
+    </script>
+</body>
+</html>
+yiğit bir tipsiz
+// ...existing code...
+
+/*
+  Basit karakter/mağaza sistemi
+  - Yeni karakterleri `window.characters` dizisine ekleyin.
+  - UI elementleri index.html'de hazır: charactersList, charName, charColor, charPrice, btnP1Action, btnP2Action, p1Coins, p2Coins, menuP1Coins, menuP2Coins, p1Selection, p2Selection
+*/
+
+window._coins = window._coins || { p1: 0, p2: 0 };
+window.storeState = window.storeState || { p1Selected: 'abdulrezzak', p2Selected: 'mahmut_abi' };
+
+window.characters = window.characters || [
+    { id: 'abdulrezzak', name: 'Abdulrezzak', price: 0, color: '#2b8cff', unlocked: true, score: 0 },
+    { id: 'mahmut_abi',   name: 'Mahmut Abi',   price: 0, color: '#ff4d4f', unlocked: true, score: 0 },
+    // yeni karakter örnekleri:
+    { id: 'lamala',       name: 'LAMALA',       price: 500, color: '#9b5de5', unlocked: false, score: 0 },
+    { id: 'uamhp',        name: '11UAMHP',      price: 1200, color: '#f97316', unlocked: false, score: 0 }
+];
+
+// UI güncelleme fonksiyonu
+function updateCharactersUI() {
+    // coin gösterimleri
+    var p1c = document.getElementById('p1Coins');
+    var p2c = document.getElementById('p2Coins');
+    var m1 = document.getElementById('menuP1Coins');
+    var m2 = document.getElementById('menuP2Coins');
+    if (p1c) p1c.textContent = String(window._coins.p1 || 0);
+    if (p2c) p2c.textContent = String(window._coins.p2 || 0);
+    if (m1) m1.textContent = String(window._coins.p1 || 0);
+    if (m2) m2.textContent = String(window._coins.p2 || 0);
+
+    // seçim göstergesi
+    var s1 = document.getElementById('p1Selection');
+    var s2 = document.getElementById('p2Selection');
+    if (s1) s1.textContent = getCharacterName(window.storeState.p1Selected);
+    if (s2) s2.textContent = getCharacterName(window.storeState.p2Selected);
+}
+
+// yardımcılar
+function getCharacterById(id) { return window.characters.find(c => c.id === id); }
+function getCharacterName(id) { var c = getCharacterById(id); return c ? c.name : id; }
+
+// karakter listesini oluştur
+function renderCharactersUI() {
+    var list = document.getElementById('charactersList');
+    if (!list) return;
+    list.innerHTML = '';
+    window.characters.forEach(function(chr){
+        var wrap = document.createElement('div');
+        wrap.style.border = '1px solid rgba(255,255,255,0.08)';
+        wrap.style.padding = '8px';
+        wrap.style.marginBottom = '8px';
+        wrap.style.borderRadius = '8px';
+        wrap.style.background = 'rgba(0,0,0,0.12)';
+        // başlık
+        var title = document.createElement('div');
+        title.textContent = chr.name + (chr.unlocked ? '' : (' — ' + chr.price + ' ₺'));
+        title.style.fontWeight = 'bold';
+        title.style.marginBottom = '6px';
+        // renk göstergesi
+        var color = document.createElement('div');
+        color.style.width = '44px';
+        color.style.height = '44px';
+        color.style.borderRadius = '8px';
+        color.style.background = chr.color;
+        color.style.display = 'inline-block';
+        color.style.marginRight = '8px';
+        color.style.verticalAlign = 'middle';
+        // select/buy buton
+        var btn = document.createElement('button');
+        btn.className = 'menu-btn';
+        btn.style.fontSize = '14px';
+        btn.style.padding = '8px 12px';
+        btn.style.marginLeft = '8px';
+        if (chr.unlocked) btn.textContent = 'Seç';
+        else btn.textContent = 'Satın Al';
+        btn.addEventListener('click', function(){
+            // detay göster
+            showCharacterDetail(chr.id);
+        });
+
+        wrap.appendChild(color);
+        wrap.appendChild(title);
+        wrap.appendChild(btn);
+        list.appendChild(wrap);
+    });
+}
+
+// detay panelde göster
+function showCharacterDetail(id) {
+    var chr = getCharacterById(id);
+    if (!chr) return;
+    var nameEl = document.getElementById('charName');
+    var colorEl = document.getElementById('charColor');
+    var priceEl = document.getElementById('charPrice');
+    var btnP1 = document.getElementById('btnP1Action');
+    var btnP2 = document.getElementById('btnP2Action');
+
+    if (nameEl) nameEl.textContent = chr.name;
+    if (colorEl) colorEl.style.background = chr.color;
+    if (priceEl) priceEl.textContent = 'Fiyat: ' + chr.price + ' ₺' + (chr.unlocked ? ' (Sahip)' : '');
+    if (btnP1) {
+        btnP1.textContent = chr.unlocked ? 'P1 Seç' : 'P1 Satın Al';
+        btnP1.onclick = function(){ if (chr.unlocked) selectCharacter('p1', id); else buyCharacter('p1', id); };
+    }
+    if (btnP2) {
+        btnP2.textContent = chr.unlocked ? 'P2 Seç' : 'P2 Satın Al';
+        btnP2.onclick = function(){ if (chr.unlocked) selectCharacter('p2', id); else buyCharacter('p2', id); };
+    }
+}
+
+// satın alma
+function buyCharacter(player, id) {
+    var chr = getCharacterById(id);
+    if (!chr) return;
+    var coins = window._coins || { p1:0, p2:0 };
+    var payer = player === 'p1' ? 'p1' : 'p2';
+    if ((coins[payer] || 0) < chr.price) {
+        alert('Yeterli paranız yok.');
+        return;
+    }
+    coins[payer] -= chr.price;
+    chr.unlocked = true;
+    // otomatik seç
+    selectCharacter(player, id);
+    renderCharactersUI();
+    updateCharactersUI();
+    alert(chr.name + ' başarıyla satın alındı.');
+}
+
+// seçim
+function selectCharacter(player, id) {
+    if (!getCharacterById(id)) return;
+    if (player === 'p1') window.storeState.p1Selected = id;
+    else window.storeState.p2Selected = id;
+    updateCharactersUI();
+}
+
+// başlatırken çağırılacak (varsa initStore ile birleştirin)
+function initCharacters() {
+    // başlangıç parası ayarı (örnek)
+    window._coins = window._coins || { p1: 1000, p2: 1000 };
+    renderCharactersUI();
+    updateCharactersUI();
+}
+
+// sayfa hazırsa hemen başlat
+if (document.readyState === 'complete' || document.readyState === 'interactive') {
+    setTimeout(initCharacters, 10);
+} else {
+    document.addEventListener('DOMContentLoaded', initCharacters);
+}
+
+// ...existing code...

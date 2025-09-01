@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Platform Oyunu</title>
+    <link rel="stylesheet" href="styles/style.css">
+</head>
+<body>
+    <h1>Sticky Parkur</h1>
+    <canvas id="gameCanvas" width="800" height="600"></canvas>
+    
+    <button class="fullscreen-btn" onclick="toggleFullscreen()">🖥️ Tam Ekran</button>
+    
+    <div id="menuOverlay" class="menu-overlay">
+        <div class="menu-panel" id="mainMenuPanel">
+            <h2>Sticky Parkur</h2>
+            <div style="margin-bottom:12px; color: #fff; font-weight: bold; display:flex; gap:18px; justify-content:center;">
+                <div>P1 Para: <span id="menuP1Coins">0</span></div>
+                <div>P2 Para: <span id="menuP2Coins">0</span></div>
+            </div>
+            <div class="menu-icon-row">
+                <div class="icon-wrap">
+                    <button class="icon-btn" onclick="openHowTo()">?</button>
+                    <div class="icon-label">Nasıl Oynanır</div>
+                </div>
+                <button class="play-btn" onclick="startFromMenu()" aria-label="Oyunu Başlat">
+                    <svg class="play-svg" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+                        <defs>
+                            <linearGradient id="g" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" stop-color="#16a34a"/>
+                                <stop offset="100%" stop-color="#22c55e"/>
+                            </linearGradient>
+                        </defs>
+                        <rect x="10" y="10" rx="28" ry="28" width="180" height="180" fill="url(#g)" stroke="#facc15" stroke-width="10"/>
+                        <polygon points="85,65 85,135 140,100" fill="#fff"/>
+                    </svg>
+                </button>
+                <div class="icon-wrap">
+                    <button class="icon-btn" onclick="openSettings()">⚙️</button>
+                    <div class="icon-label">Ayarlar</div>
+                </div>
+                <div class="icon-wrap">
+                    <button class="icon-btn" onclick="openCharacters()">👤</button>
+                    <div class="icon-label">Karakterler</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="subpanel" id="howToPanel">
+            <h3>Nasıl Oynanır</h3>
+            <p><strong>Karakter 1 (Mavi - Abdulrezzak)</strong>: A/D (hareket), W (zıplama), E (kol uzatma)</p>
+            <p><strong>Karakter 2 (Kırmızı - Mahmut Abi)</strong>: Sol/Sağ ok (hareket), Yukarı ok (zıplama). Güçlü tekme: L</p>
+            <div class="actions">
+                <button class="menu-btn" onclick="backToMenu()">⬅️ Geri</button>
+                <button class="menu-btn" onclick="startFromMenu()">🎮 Başlat</button>
+            </div>
+        </div>
+
+        <div class="subpanel" id="settingsPanel">
+            <h3>Ayarlar</h3>
+            <div class="row">
+                <div>
+                    <label for="startLevel">Başlangıç Bölümü</label>
+                    <input id="startLevel" type="number" min="1" max="15" value="1" />
+                </div>
+                <div>
+                    <label for="startFullscreen">Tam ekranda başla</label>
+                    <select id="startFullscreen">
+                        <option value="no">Hayır</option>
+                        <option value="yes">Evet</option>
+                    </select>
+                </div>
+                <div style="min-width:220px;">
+                    <label for="volumePercent">Ses seviyesi</label>
+                    <input id="volumePercent" type="range" min="0" max="100" value="60" />
+                    <span id="volumeValue" style="margin-left:6px;">60%</span>
+                </div>
+            </div>
+            <div class="actions">
+                <button class="menu-btn" onclick="saveSettings()">💾 Kaydet</button>
+                <button class="menu-btn" onclick="backToMenu()">⬅️ Geri</button>
+            </div>
+        </div>
+
+        <div class="subpanel" id="charactersPanel">
+            <h3>Karakterler ve Mağaza</h3>
+            <div class="row" style="justify-content: space-between; align-items: center;">
+                <div>
+                    <p><strong>Oyuncu 1 Para:</strong> <span id="p1Coins">0</span></p>
+                    <p><strong>Seçili:</strong> <span id="p1Selection">Abdulrezzak</span></p>
+                </div>
+                <div>
+                    <p><strong>Oyuncu 2 Para:</strong> <span id="p2Coins">0</span></p>
+                    <p><strong>Seçili:</strong> <span id="p2Selection">Mahmut Abi</span></p>
+                </div>
+            </div>
+            <div class="row" style="align-items: stretch;">
+                <div id="charactersList" style="flex:1; min-width:260px;"></div>
+                <div id="characterDetail" style="flex:1; min-width:260px; background: rgba(0,0,0,0.25); border-radius: 10px; padding: 12px;">
+                    <h4 id="charName">Seçili Karakter</h4>
+                    <div id="charColor" style="width: 60px; height: 60px; border-radius: 50%; margin-bottom: 8px; border: 3px solid #fff;"></div>
+                    <p id="charPrice">Fiyat: 0</p>
+                    <div class="actions">
+                        <button class="menu-btn" id="btnP1Action">P1</button>
+                        <button class="menu-btn" id="btnP2Action">P2</button>
+                    </div>
+                </div>
+            </div>
+            <div class="actions">
+                <button class="menu-btn" onclick="backToMenu()">⬅️ Geri</button>
+                <button class="menu-btn" onclick="startFromMenu()">🎮 Başlat</button>
+            </div>
+        </div>
+    </div>
+    
+    <div class="controls">
+        <h3>Kontroller:</h3>
+            <p><strong>Karakter 1:</strong> A/D (hareket), W (zıplama), E (kol uzatma)</p>
+            <p><strong>Karakter 2:</strong> Sol/Sağ ok tuşları (hareket), Yukarı ok (zıplama)</p>
+    </div>
+
+    <script src="game.js"></script>
+    <script>
+        // Admin paneli için değişken
+        let isAdmin = false;
+
+        function startFromMenu() {
+            const inputCode = prompt("Admin kodunu girin:");
+            if (inputCode === "3141") {
+                isAdmin = true;
+                alert("Admin paneline hoş geldiniz!");
+                // Admin panelini göster
+                showAdminPanel();
+            } else {
+                // Normal oyunu başlat
+                const overlay = document.getElementById('menuOverlay');
+                if (overlay) overlay.style.display = 'none';
+                if (window.gameSettings && window.gameSettings.startFullscreen && !document.fullscreenElement) {
+                    toggleFullscreen();
+                }
+                // Oyun müziğini yükle ve çal
+                if (window.startGame) {
+                    window.startGame();
+                }
+            }
+        }
+
+        function showAdminPanel() {
+            // Admin panelini gösterme kodu buraya gelecek
+            console.log("Admin paneli gösteriliyor...");
+        }
+    </script>
+</body>
+</html>

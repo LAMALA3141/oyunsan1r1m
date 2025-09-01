@@ -1,0 +1,109 @@
+body {
+    margin: 0;
+    padding: 0;
+    font-family: Arial, sans-serif;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+}
+
+h1 {
+    text-align: center;
+    margin: 20px 0;
+}
+
+#gameCanvas {
+    border: 3px solid #333;
+    border-radius: 10px;
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.3);
+    background: linear-gradient(to bottom, #87CEEB, #98FB98);
+    display: block;
+    margin: 0 auto;
+}
+
+.controls {
+    text-align: center;
+    margin-top: 20px;
+}
+
+.fullscreen-btn {
+    background: linear-gradient(45deg, #FF6B6B, #4ECDC4);
+    color: white;
+    border: none;
+    padding: 12px 24px;
+    font-size: 16px;
+    font-weight: bold;
+    border-radius: 25px;
+    cursor: pointer;
+    margin: 10px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    transition: all 0.3s ease;
+}
+
+.fullscreen-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+}
+
+.menu-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.65);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+}
+
+.menu-panel {
+    background: rgba(0, 0, 0, 0.45);
+    padding: 36px 48px;
+    border-radius: 16px;
+    text-align: center;
+    color: white;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+    max-width: 680px;
+    width: calc(100% - 48px);
+}
+
+.menu-btn {
+    background: linear-gradient(45deg, #4ECDC4, #45B7D1);
+    color: white;
+    border: none;
+    padding: 16px 28px;
+    font-size: 20px;
+    font-weight: bold;
+    border-radius: 28px;
+    cursor: pointer;
+    margin: 0;
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.25);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.menu-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+}
+
+.subpanel {
+    background: rgba(0, 0, 0, 0.45);
+    padding: 28px 36px;
+    border-radius: 14px;
+    color: white;
+    width: min(760px, calc(100% - 48px));
+    display: none;
+}
+
+.subpanel h3 {
+    margin-top: 0;
+    font-size: 24px;
+}
+
+.subpanel .actions {
+    margin-top: 16px;
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}

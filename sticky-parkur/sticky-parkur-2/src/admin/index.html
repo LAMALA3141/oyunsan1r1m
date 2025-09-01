@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Panel - Sticky Parkur</title>
+    <link rel="stylesheet" href="admin.css">
+</head>
+<body>
+    <div class="admin-container">
+        <h1>Admin Panel</h1>
+        <div class="access-code-section">
+            <h2>Erişim Kodları Yönetimi</h2>
+            <input type="text" id="accessCodeInput" placeholder="Erişim Kodu Girin">
+            <button id="validateCodeBtn">Kod Doğrula</button>
+            <button id="addCodeBtn">Yeni Kod Ekle</button>
+            <div id="codeStatus"></div>
+        </div>
+        <div class="settings-section">
+            <h2>Oyun Ayarları</h2>
+            <label for="levelAccess">Seviye Erişimi:</label>
+            <input type="number" id="levelAccess" min="1" max="15" value="1">
+            <button id="saveSettingsBtn">Ayarları Kaydet</button>
+        </div>
+        <div class="money-section">
+            <h2>Para Yönetimi</h2>
+            <button id="infiniteMoneyBtn">Sonsuz Para Aktifleştir</button>
+        </div>
+    </div>
+    <script src="admin.js"></script>
+</body>
+</html>

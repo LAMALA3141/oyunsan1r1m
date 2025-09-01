@@ -1,0 +1,21 @@
+{
+  "name": "sticky-parkur",
+  "version": "1.0.0",
+  "description": "A fun platform game with multiplayer support.",
+  "main": "index.html",
+  "scripts": {
+    "start": "live-server .",
+    "build": "echo 'Build step not defined yet.'"
+  },
+  "dependencies": {
+    "live-server": "^1.2.1"
+  },
+  "devDependencies": {},
+  "keywords": [
+    "game",
+    "platform",
+    "multiplayer"
+  ],
+  "author": "Your Name",
+  "license": "MIT"
+}
