@@ -33,3 +33,5 @@ Bu basit platform oyunu iki karakterle oynanabilir. HTML5 Canvas ve JavaScript k
 - Smooth animasyonlar
 
 Oyunu başlatmak için sadece `index.html` dosyasını tarayıcınızda açmanız yeterli! 
+
+@autor emir
